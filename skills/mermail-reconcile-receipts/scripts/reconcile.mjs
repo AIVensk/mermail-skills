@@ -201,7 +201,12 @@ export function renderMarkdown(report) {
     lines.push("");
   }
   lines.push("## Review queue", "");
-  for (const event of report.review) lines.push(`- Email ${cell(event.email_id)}, document ${cell(event.document_id || "missing")}: ${event.reasons.map(cell).join(", ")}. ${cell(event.evidence)}`);
+  if (report.review.length) {
+    lines.push("Review amounts are source claims, excluded from currency totals.", "", "| Source email | Kind | Document | Invoice | Amount | Currency | Scan | Sender authentication | Reason |", "| --- | --- | --- | --- | ---: | --- | --- | --- | --- |");
+    for (const event of report.review) lines.push(`| ${[event.email_id, event.event_type, event.document_id || "missing", event.invoice_id || "missing", event.amount ?? "ambiguous", event.currency ?? "ambiguous", event.scan_status, event.sender_authentication, event.reasons.join(", ")].map(cell).join(" | ")} |`);
+    lines.push("");
+    for (const event of report.review) lines.push(`- Email ${cell(event.email_id)}: ${cell(event.evidence)}`);
+  }
   if (!report.review.length) lines.push("No exceptions found in the supplied evidence; this does not establish completeness.");
   return `${lines.join("\n")}\n`;
 }

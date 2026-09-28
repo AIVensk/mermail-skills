@@ -162,6 +162,16 @@ test("empty evidence is not a claim that every invoice is paid", () => {
   assert.ok(report.notice.includes("limited"));
 });
 
+test("review Markdown exposes source claims and authentication without including them in totals", () => {
+  const report = reconcile(input([event({ email_id: "review|email", sender_authentication: "unknown", amount: null, currency: null })]));
+  const markdown = renderMarkdown(report);
+  assert.ok(markdown.includes("| Source email | Kind | Document | Invoice | Amount | Currency | Scan | Sender authentication | Reason |"));
+  assert.ok(markdown.includes("| review&#124;email | invoice | INV-1 | INV-1 | ambiguous | ambiguous | clean | unknown |"));
+  assert.ok(markdown.includes("sender&#95;not&#95;authenticated"));
+  assert.ok(markdown.includes("Review amounts are source claims, excluded from currency totals."));
+  assert.deepEqual(report.currency_totals, []);
+});
+
 test("CLI handles real fixture input and malformed invocation", () => {
   const script = new URL("../skills/mermail-reconcile-receipts/scripts/reconcile.mjs", import.meta.url);
   const fixture = new URL("../skills/mermail-reconcile-receipts/assets/demo-ledger.json", import.meta.url);
